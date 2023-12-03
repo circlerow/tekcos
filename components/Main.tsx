@@ -15,8 +15,9 @@ const Main = () => {
     const [message, setMessage] = useState('');
     const [userData, setUserData] = useState<IUserData | null>(null);
     const [allUsers, setAllUsers] = useState([]);
-    const [conversation, setConversation] = useState([]);
+    const [conversation, setConversation] = useState<any>([]);
     const [conversationId, setConversationId] = useState<IConversationId | null>(null);
+    const [toUserId, setToUserId] = useState('');
 
 
     useEffect(() => {
@@ -35,6 +36,17 @@ const Main = () => {
     }
         , [])
 
+    useEffect(() => {
+        socket.on('message-received', (message: any) => {
+            if (message.toUserId === userData?._id) {
+                console.log(message)
+                setConversation([{ message: message.message, isMine: false }, ...conversation]);
+            }
+        });
+    }
+        , [conversation, userData?._id])
+
+
     const getMessages = async (userId: string) => {
         try {
             const accessToken = localStorage.getItem('accessToken');
@@ -43,6 +55,7 @@ const Main = () => {
 
             setConversation(resCurrentConversation.messages);
             setConversationId(resCurrentConversation.conversationId)
+            setToUserId(userId);
         }
         catch (error) {
             console.log(error)
@@ -61,9 +74,14 @@ const Main = () => {
 
     const sendMessage = (event: any) => {
         event.preventDefault();
+        if (!message) {
+            return;
+        }
+        setConversation([{ message: message, isMine: true }, ...conversation]);
         socket.emit(topicEmit, {
             message: message,
-            userId: userData ? userData._id : '',
+            fromUserId: userData ? userData._id : '',
+            toUserId: toUserId,
             userConversationId: conversationId,
         });
         setMessage('');
@@ -97,7 +115,7 @@ const Main = () => {
                         })}
                     </div>
                     <div className='h-full bg-blue-100 w-3/4 border-2 border-black'>
-                        <div className='h-19/20 overflow-auto flex flex-col'>
+                        <div className='h-19/20 overflow-auto flex flex-col-reverse'>
                             {conversation.map((message: IMessageConversation, index: number) => {
                                 if (message.isMine) {
                                     return <MyMessage key={index} message={message.message} />
