@@ -1,15 +1,18 @@
 'use client'
 
-import { emailExist, invalid, invalidRepeatPassword, registerSuccessfully, registerUrl, success } from '@/enum';
+import { emailExist, invalid, invalidRepeatPassword, pleaseLogin, registerSuccessfully, registerUrl, success } from '@/enum';
 import { IRegister } from '@/interface';
 import { openNotification } from '@/utils/notification';
+import { sleep } from '@/utils/utils';
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons'
 import { Form, Button, Input, notification } from 'antd'
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
 import React from 'react'
 
 const RegisterForm = () => {
     const [api, contextHolder] = notification.useNotification();
+    const router = useRouter();
 
     const onRegister = (values: IRegister) => {
         const { email, name, password, repeatPassword } = values;
@@ -17,11 +20,15 @@ const RegisterForm = () => {
 
         if (password !== repeatPassword) {
             openNotification(api, invalid, invalidRepeatPassword)
+            return
         }
         axios.post(registerUrl, userRegister)
-            .then((response) => {
+            .then(async (response) => {
                 if (response.status === 201) {
                     openNotification(api, success, registerSuccessfully)
+                    openNotification(api, success, pleaseLogin)
+                    await sleep(2000)
+                    router.push('/login');
                 }
             })
             .catch((error) => {

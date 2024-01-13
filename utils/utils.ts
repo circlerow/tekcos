@@ -17,3 +17,8 @@ export async function postUrl(url: string, data: any, headers: any) {
     const response = await axios.post(url, data, headers);
     return response.data;
 }
+
+
+export function sleep(ms: number | undefined) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}

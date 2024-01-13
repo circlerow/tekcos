@@ -1,6 +1,6 @@
 'use client'
 
-import { accessToken, invalid, invalidEmailOrPassword, loginUrl } from '@/enum'
+import { accessToken, invalid, invalidEmailOrPassword, loginUrl, userId } from '@/enum'
 import { ILogin } from '@/interface'
 import { openNotification } from '@/utils/notification'
 import { LockOutlined, UserOutlined } from '@ant-design/icons'
@@ -20,6 +20,7 @@ const LoginForm = () => {
         axios.post(loginUrl, userLogin)
             .then((response) => {
                 localStorage.setItem(accessToken, response.data.access_token)
+                localStorage.setItem(userId, response.data.userId)
                 if (response.status === 201) {
                     router.push('/');
                 }
