@@ -10,8 +10,7 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        // header: ['DM Sans'],
-        // body: ['DM Sans'],
+        sans: ['"PT Sans"', 'sans-serif']
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
@@ -19,8 +18,8 @@ const config: Config = {
           'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
       },
       height: {
-        '1/20': '5%',
-        '19/20': '95%',
+        '1/20': '6%',
+        '19/20': '94%',
       },
     },
   },

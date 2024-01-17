@@ -4,25 +4,31 @@ import { MessageTwoTone } from '@ant-design/icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Space } from 'antd'
 import Link from 'next/link'
-import React from 'react'
+import React, { use, useEffect, useState } from 'react'
 import {
     faGear,
 } from "@fortawesome/free-solid-svg-icons";
 import { Menu, MenuButton, MenuItem, MenuList, Flex, MenuGroup, MenuDivider } from '@chakra-ui/react';
-
-const user = {
-    name: 'John Doe',
-    avatar: 'http://localhost:2601/files/avatar-1705069330132-932386435.jpeg',
-    phoneNumber: '081234567890',
-    address: 'Jl. Raya Bogor, No. 1, Jakarta Timur',
-    birthday: '12-01-2024',
-    description: 'Lorem ipsum dolor sit am',
-}
-
-
+import axios from 'axios'
+import { url } from '@/enum'
+import { convertToDate } from '@/utils/utils'
 
 
 const Profile = () => {
+    const [userData, setUserData] = useState<any>();
+
+    useEffect(() => {
+        const userId = localStorage.getItem('userId');
+        try {
+            axios.get(`${url}/user-info/${userId}`)
+                .then((response) => { setUserData(response.data) })
+        }
+        catch (error) {
+            console.log(error)
+        }
+    }
+        , [])
+    
     return (
         <>
             <div className='h-screen'>
@@ -44,20 +50,20 @@ const Profile = () => {
                 <div className='overlay bg-gradient-to-r from-violet-500 to-fuchsia-500'>
                     <div className='profile'>
                         <div className='flex'>
-                            <img src={user.avatar} alt='avatar' className='rounded-full w-[200px] h-[200px]' />
+                            <img src={userData?.avatar} alt='avatar' className='rounded-full w-[200px] h-[200px]' />
                             <div>
-                                <h1 className='text-[70px] text-black font-bold ml-4'>{user.name}</h1>
+                                <h1 className='text-[70px] text-black font-bold ml-4'>{userData?.name}</h1>
                                 <div className='flex ml-3'>
                                     <h1 className='font-header text-[20px]  text-gray-600'>Phone Number:</h1>
-                                    <p className='ml-3 font-body text-[20px] text-black'>{user.phoneNumber}</p>
+                                    <p className='ml-3 font-body text-[20px] text-black'>{userData?.phoneNumber}</p>
                                 </div>
                                 <div className='flex ml-3'>
                                     <h1 className='font-header text-[20px] text-gray-600'>Address:</h1>
-                                    <p className='ml-3 font-body text-[20px] text-black'>{user.address}</p>
+                                    <p className='ml-3 font-body text-[20px] text-black'>{userData?.address}</p>
                                 </div>
                                 <div className='flex ml-3'>
                                     <h1 className='font-header text-[20px] text-gray-600'>Birthday:</h1>
-                                    <p className='ml-3 font-body text-[20px] text-black'>{user.birthday}</p>
+                                    <p className='ml-3 font-body text-[20px] text-black'>{convertToDate(userData?.birthday)}</p>
                                 </div>
                             </div>
                             <div className='setting ml-auto mr-1 text-black'>
@@ -77,7 +83,7 @@ const Profile = () => {
                         </div>
                         <div className='profile__info mt-5 ml-3'>
                             <h1 className='font-header text-[20px] text-black font-bold'>Description:</h1>
-                            <p className='font-body text-[18px] text-black'>{user.description}</p>
+                            <p className='font-body text-[18px] text-black'>{userData?.description}</p>
                         </div>
                     </div>
                 </div>

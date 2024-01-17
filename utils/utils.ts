@@ -22,3 +22,15 @@ export async function postUrl(url: string, data: any, headers: any) {
 export function sleep(ms: number | undefined) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+export function convertToDate(dateString: string) {
+  const date = new Date(dateString);
+  
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+
+  const formattedDate = `${day}-${month}-${year}`;
+
+  return formattedDate;
+}

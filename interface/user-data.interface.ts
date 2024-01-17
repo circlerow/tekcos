@@ -1,4 +1,6 @@
 export default interface IUserData {
-  _id: string;
+  id: string;
   name: string;
+  lastMessage: string;
+  hasInfo: boolean;
 }

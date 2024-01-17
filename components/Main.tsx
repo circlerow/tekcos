@@ -12,14 +12,16 @@ import { currentCoversation, enter, getAllUserUrl, topicEmit, userDataUrl } from
 import { IConversationId, IMessageConversation, IUserData } from '@/interface'
 import { getHeaders, postUrl } from '@/utils/utils'
 import Link from 'next/link'
+import "@/app/globals.css"
 
 const Main = () => {
     const [message, setMessage] = useState('');
-    const [userData, setUserData] = useState<IUserData | null>(null);
+    const [userData, setUserData] = useState<IUserData>();
     const [allUsers, setAllUsers] = useState([]);
     const [conversation, setConversation] = useState<any>([]);
     const [conversationId, setConversationId] = useState<IConversationId | null>(null);
     const [toUserId, setToUserId] = useState('');
+    const [visibleMessages, setVisibleMessages] = useState(20);
 
 
     useEffect(() => {
@@ -28,7 +30,6 @@ const Main = () => {
         try {
             axios.get(getAllUserUrl, header)
                 .then((response) => { setAllUsers(response.data) })
-
             axios.get(userDataUrl, header)
                 .then((response) => { setUserData(response.data) })
         }
@@ -38,25 +39,28 @@ const Main = () => {
     }
         , [])
 
+    const loadMoreMessages = () => {
+        setVisibleMessages(prevVisibleMessages => prevVisibleMessages + 20);
+    };
+
     useEffect(() => {
         socket.on('message-received', (message: any) => {
-            if (message.toUserId === userData?._id) {
-                console.log(message)
-                setConversation([{ message: message.message, isMine: false }, ...conversation]);
+            if (message.toUserId === userData?.id) {
+                setConversation([{ content: message.message, isMine: false, createAt: Date.now(), }, ...conversation]);
             }
         });
     }
-        , [conversation, userData?._id])
+        , [conversation, userData?.id])
 
 
     const getMessages = async (userId: string) => {
         try {
             const accessToken = localStorage.getItem('accessToken');
             const header = getHeaders(accessToken);
-            const resCurrentConversation = await postUrl(currentCoversation, { userId: userId }, header);
+            const resCurrentConversation = await axios.get(`http://localhost:2601/conversation/${userId}`, header)
 
-            setConversation(resCurrentConversation.messages);
-            setConversationId(resCurrentConversation.conversationId)
+            setConversation(resCurrentConversation.data.messages);
+            setConversationId(resCurrentConversation.data.conversationId)
             setToUserId(userId);
         }
         catch (error) {
@@ -66,6 +70,11 @@ const Main = () => {
 
     const handleChange = (event: any) => {
         setMessage(event.target.value);
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('userId');
     };
 
     const handleKeyPress = (event: any) => {
@@ -79,12 +88,12 @@ const Main = () => {
         if (!message) {
             return;
         }
-        setConversation([{ message: message, isMine: true }, ...conversation]);
+        setConversation([{ content: message, isMine: true, createAt: Date.now(), from: userData?.id, fromUserId: userData?.id, toUserId: toUserId }, ...conversation]);
         socket.emit(topicEmit, {
             message: message,
-            fromUserId: userData ? userData._id : '',
+            fromUserId: userData ? userData.id : '',
             toUserId: toUserId,
-            userConversationId: conversationId,
+            conversationId: conversationId,
         });
         setMessage('');
     };
@@ -97,20 +106,25 @@ const Main = () => {
                         <Space className='h-full'>
                             <div className='mb-0.5 ml-2 text-[45px] font-header flex'>
                                 <MessageTwoTone className='my-3 mr-1' />
-                                <h1 className='font-bold'>Tekcos Chat</h1>
+                                <h1 className='font-bold '>Tekcos Chat</h1>
                             </div>
                         </Space>
                     </div>
                     {userData && <div className='m-auto font-bold text-xl'>
                         Welcome to Tekcos Chat,{userData.name} !!!
                     </div>}
-                    <Link href='/profile'>
+                    {userData?.hasInfo ? <Link href='/profile'>
                         <div className="header-guest__login mr-5 mt-2.5">
                             <img src="/user-avatar.svg" alt="An SVG of an eye" className='svg' />
                         </div>
                     </Link>
+                        : <Link href='/create-profile'>
+                            <div className="header-guest__login mr-5 mt-2.5">
+                                <img src="/user-avatar.svg" alt="An SVG of an eye" className='svg' />
+                            </div>
+                        </Link>}
                     <div className='my-auto mr-4 header-guest__login'>
-                        <a href="/login" className='font-header text-[18px] hover:text-gray-200 underline'>Log Out</a>
+                        <a href="/login" className='font-header text-[18px] hover:text-gray-200 underline' onClick={handleLogout}>Log Out</a>
                     </div>
                 </div>
                 <div className='overlay-main bg-gradient-to-r from-violet-500 to-fuchsia-500'>
@@ -118,19 +132,22 @@ const Main = () => {
                         <div className='h-full bg-blue-100 w-1/5 border-2 border-black overflow-auto'>
                             {allUsers.map((user: IUserData) => {
                                 return (
-                                    <Conversation key={user._id} name={user.name} id={user._id} startConversation={getMessages} />
+                                    <Conversation key={user.id} name={user.name} id={user.id} lastMessage={user.lastMessage} startConversation={getMessages} />
                                 )
                             })}
                         </div>
                         <div className='h-full bg-blue-100 w-4/5 border-2 border-black'>
                             <div className='h-19/20 overflow-auto flex flex-col-reverse'>
-                                {conversation.map((message: IMessageConversation, index: number) => {
+                                {conversation.slice(0, visibleMessages).map((message: { isMine: any; content: string }, index: React.Key | null | undefined) => {
                                     if (message.isMine) {
-                                        return <MyMessage key={index} message={message.message} />
+                                        return <MyMessage key={index} message={message.content} />;
                                     } else {
-                                        return <YourMessage key={index} message={message.message} />
+                                        return <YourMessage key={index} message={message.content} />;
                                     }
                                 })}
+                                {visibleMessages < conversation.length && (
+                                    <button onClick={loadMoreMessages} className='bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded'>Load More</button>
+                                )}
                             </div>
                             <div className='h-1/20'>
                                 <input type="text" id='message' name='message' placeholder='Aa' onChange={handleChange} value={message} onKeyPress={handleKeyPress}
