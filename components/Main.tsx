@@ -22,6 +22,7 @@ const Main = () => {
     const [conversationId, setConversationId] = useState<IConversationId | null>(null);
     const [toUserId, setToUserId] = useState('');
     const [visibleMessages, setVisibleMessages] = useState(20);
+    const [avatar, setAvatar] = useState('');
 
 
     useEffect(() => {
@@ -58,7 +59,9 @@ const Main = () => {
             const accessToken = localStorage.getItem('accessToken');
             const header = getHeaders(accessToken);
             const resCurrentConversation = await axios.get(`http://localhost:2601/conversation/${userId}`, header)
-
+            const avatar = await axios.get(`http://localhost:2601/user-info/avatar/${userId}`, header)
+            console.log(avatar)
+            setAvatar(avatar.data)
             setConversation(resCurrentConversation.data.messages);
             setConversationId(resCurrentConversation.data.conversationId)
             setToUserId(userId);
@@ -142,7 +145,7 @@ const Main = () => {
                                     if (message.isMine) {
                                         return <MyMessage key={index} message={message.content} />;
                                     } else {
-                                        return <YourMessage key={index} message={message.content} />;
+                                        return <YourMessage key={index} message={message.content} avatar={avatar} />;
                                     }
                                 })}
                                 {visibleMessages < conversation.length && (

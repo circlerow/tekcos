@@ -30,6 +30,9 @@ const LoginForm = () => {
                 if (error.response.status === 401) {
                     openNotification(api, invalid, invalidEmailOrPassword)
                 }
+                if (error.response.status === 403) {
+                    openNotification(api, invalid, invalidEmailOrPassword)
+                }
             });
     }
 
