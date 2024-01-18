@@ -132,7 +132,7 @@ const Main = () => {
                         <div className='h-full bg-blue-100 w-1/5 border-2 border-black overflow-auto'>
                             {allUsers.map((user: IUserData) => {
                                 return (
-                                    <Conversation key={user.id} name={user.name} id={user.id} lastMessage={user.lastMessage} startConversation={getMessages} />
+                                    <Conversation key={user.id} name={user.name} id={user.id} avatar={user.avatar} lastMessage={user.lastMessage} startConversation={getMessages} />
                                 )
                             })}
                         </div>

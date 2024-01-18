@@ -3,6 +3,7 @@ export interface IConversation {
   id: string;
   name: string;
   lastMessage: string;
+  avatar?: string;
 }
 
 export interface IConversationId {
